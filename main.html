@@ -2,8 +2,10 @@
     <head>
         <title>Welcome to our CS478 Project</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
     </head>
     <body>
+        <input id="fileinput" type="file" style="visibility:hidden" />
         <!-- <div style="width: 400px; height:400px; background-color: black;">
 
         </div> -->
@@ -11,6 +13,10 @@
             
             const points = [
                 new THREE.Vector3(5,5,0),
+                new THREE.Vector3(-10,0,0),
+                new THREE.Vector3(0,10,0),
+                new THREE.Vector3(10,0,0),
+                new THREE.Vector3(-10,0,0),
             ]
 
             const linePoints = [
@@ -19,7 +25,19 @@
                 new THREE.Vector3(10,0,0),
                 new THREE.Vector3(-10,0,0),
             ]
-            const geoms = [];
+            var geoms = [];
+            var pgeom = new THREE.Geometry()
+
+            for(var i = 0; i < points.length; i++){
+                pgeom.vertices.push(points[i]) ;
+            };
+
+            for(var i = 1; i < linePoints.length;i+=2){
+                    const geom = new THREE.Geometry()
+                    geom.vertices.push(linePoints[i])
+                    geom.vertices.push(linePoints[i-1])
+                    geoms.push(geom);
+            }
 
             const renderer = new THREE.WebGLRenderer();
             renderer.setSize( window.innerWidth, window.innerHeight );
@@ -32,35 +50,69 @@
             const scene = new THREE.Scene();
 
             const material = new THREE.LineBasicMaterial( { color: 0xffffff  } );
-            const pgeom = new THREE.Geometry()
-            for(var i = 1; i < linePoints.length;i+=2){
-                const geom = new THREE.Geometry()
-                geom.vertices.push(linePoints[i])
-                geom.vertices.push(linePoints[i-1])
-                pgeom.vertices.push(linePoints[i])
-                pgeom.vertices.push(linePoints[i-1])
-                const line = new THREE.Line(geom,material)
-                scene.add(line);
-                geoms.push(geom);
+            const pMat = new THREE.PointsMaterial({color:0xffffff,size:2});
+
+            function addLines() {
+                for(var i = 0; i < geoms.length;i++){
+                    const line = new THREE.Line(geoms[i],material)
+                    scene.add(line);
+                }
             }
 
-            const pMat = new THREE.PointsMaterial({color:0xffffff,size:2});
-            for(var i = 0; i < points.length; i++){
-                pgeom.vertices.push(points[i]) ;
-            };
-            const pts = new THREE.Points(pgeom,pMat)
-            scene.add(pts)
-            geoms.push(pgeom)
+            function addPoints() {
+                const pts = new THREE.Points(pgeom,pMat)
+                scene.add(pts)
+            }
+
+            //GUI
+            const gui =  new dat.GUI()
+            const control = gui.addFolder("control")
+            const props = {
+                xRotate : 0.015,
+                yRotate : 0.015,
+                zRotate : 0.015,
+                loadFile : function() { 
+                        document.getElementById('fileinput').click();
+                },
+                state : "points"
+            }
+            control.add(props, "xRotate",  0, Math.PI / 50, 0.001)
+            control.add(props, "yRotate",  0, Math.PI / 50, 0.001)
+            control.add(props, "zRotate",  0, Math.PI / 50, 0.001)
+            control.add(props, 'loadFile').name("Load points")
+            control.add(props, "state", ["points", "hull", "open", "fold pattern"]).onChange(selectState)
+            control.open()
 
             function render() {
                 requestAnimationFrame( render );
                 renderer.render( scene, camera );
                 geoms.map( geom => {
-                    geom.rotateX(0.015)
-                    geom.rotateY(0.01)
-                    geom.rotateZ(0.008)
+                    geom.rotateX(props.xRotate)
+                    geom.rotateY(props.yRotate)
+                    geom.rotateZ(props.zRotate)
                 })
+                pgeom.rotateX(props.xRotate)
+                pgeom.rotateY(props.yRotate)
+                pgeom.rotateZ(props.zRotate)
             }
+
+            function selectState(s){
+                if(s === "points"){
+                    while(scene.children.length > 0){ 
+                        scene.remove(scene.children[0]); 
+                    }
+                    addPoints();
+                }
+                else if(s === "hull"){
+                    while(scene.children.length > 0){ 
+                        scene.remove(scene.children[0]); 
+                    }
+                    addLines();
+                    addPoints();
+                }
+            }
+
+            addPoints();
             render();
         </script>
         <!-- <button>
