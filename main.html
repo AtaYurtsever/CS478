@@ -1,12 +1,69 @@
 <HTML!>
     <head>
         <title>Welcome to our CS478 Project</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.js"></script>
     </head>
     <body>
-        <div style="width: 400px; height:400px; background-color: black;">
+        <!-- <div style="width: 400px; height:400px; background-color: black;">
 
-        </div>
-        <button>
+        </div> -->
+        <script>
+            
+            const points = [
+                new THREE.Vector3(5,5,0),
+            ]
+
+            const linePoints = [
+                new THREE.Vector3(-10,0,0),
+                new THREE.Vector3(0,10,0),
+                new THREE.Vector3(10,0,0),
+                new THREE.Vector3(-10,0,0),
+            ]
+            const geoms = [];
+
+            const renderer = new THREE.WebGLRenderer();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+
+            const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 500 );
+            camera.position.set( 0, 0, 100 );
+            camera.lookAt( 0, 0, 0 );
+
+            const scene = new THREE.Scene();
+
+            const material = new THREE.LineBasicMaterial( { color: 0xffffff  } );
+            const pgeom = new THREE.Geometry()
+            for(var i = 1; i < linePoints.length;i+=2){
+                const geom = new THREE.Geometry()
+                geom.vertices.push(linePoints[i])
+                geom.vertices.push(linePoints[i-1])
+                pgeom.vertices.push(linePoints[i])
+                pgeom.vertices.push(linePoints[i-1])
+                const line = new THREE.Line(geom,material)
+                scene.add(line);
+                geoms.push(geom);
+            }
+
+            const pMat = new THREE.PointsMaterial({color:0xffffff,size:2});
+            for(var i = 0; i < points.length; i++){
+                pgeom.vertices.push(points[i]) ;
+            };
+            const pts = new THREE.Points(pgeom,pMat)
+            scene.add(pts)
+            geoms.push(pgeom)
+
+            function render() {
+                requestAnimationFrame( render );
+                renderer.render( scene, camera );
+                geoms.map( geom => {
+                    geom.rotateX(0.015)
+                    geom.rotateY(0.01)
+                    geom.rotateZ(0.008)
+                })
+            }
+            render();
+        </script>
+        <!-- <button>
             Upload Points
         </button>
         <form>
@@ -23,7 +80,7 @@
                 <input id="f&c" type="radio">
                 <label for="f&c">Fold and Cut</label>
             </div>
-        </form>
+        </form> -->
     </body>
 
 </HTML>
