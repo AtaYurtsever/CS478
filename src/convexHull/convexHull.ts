@@ -15,7 +15,7 @@ type PointWithIndex = {
 };
 
 export const convexHull3D = (points: Point3D[]): Polyhedra => {
-    let pointsWithIndexes = new Map<number, Point3D>();
+    const pointsWithIndexes = new Map<number, Point3D>();
 
     points.forEach((point, index) => pointsWithIndexes.set(index, point));
 
@@ -169,17 +169,3 @@ const normalize = (p: Point3D): Point3D => {
 
 const dot = (a: Point3D, b: Point3D): number => 
     (a.x * b.x) + (a.y * b.y) + (a.z * b.z)
-
-const points = [
-    { x: -5, y: 0, z: 0 },
-    { x: 0, y: 5, z: 5 },
-    { x: -1, y: -5, z: 5 },
-    { x: 0, y: 5, z: -5 },
-    { x: 0, y: -5, z: -5 },
-    { x: 5, y: 0, z: 0 },
-    { x: 0, y: 0, z: 0 },
-    { x: 0, y: 1, z: 0 },
-    { x: -1, y: 0, z: 1 },
-];
-
-console.log(convexHull3D(points));

@@ -3,6 +3,7 @@
         <title>Welcome to our CS478 Project</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+        <script src="js/convexHull.js"></script>
     </head>
     <body>
         <input id="fileinput" type="file" style="visibility:hidden" />
@@ -10,6 +11,8 @@
 
         </div> -->
         <script>
+
+            console.log(convexHull3D);
             
             const points = [
                 new THREE.Vector3(5,5,0),
