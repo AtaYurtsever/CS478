@@ -4,62 +4,69 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
         <script src="js/convexHull.js"></script>
+        <script src="js/import.js"></script>
     </head>
     <body>
         <input id="fileinput" type="file" style="visibility:hidden" />
         <!-- <div style="width: 400px; height:400px; background-color: black;">
 
-<<<<<<< HEAD
-        </div>
-            <button>
-                Upload Points
-            </button>
-=======
         </div> -->
         <script>
-
-            console.log(convexHull3D);
-            
-            const points = [
-                new THREE.Vector3(5,5,0),
-                new THREE.Vector3(-10,0,0),
-                new THREE.Vector3(0,10,0),
-                new THREE.Vector3(10,0,0),
-                new THREE.Vector3(-10,0,0),
-            ]
-
-            const linePoints = [
-                new THREE.Vector3(-10,0,0),
-                new THREE.Vector3(0,10,0),
-                new THREE.Vector3(10,0,0),
-                new THREE.Vector3(-10,0,0),
-            ]
+            var points = [];
             var geoms = [];
             var pgeom = new THREE.Geometry()
+            document.getElementById("fileinput").addEventListener('change',(event) => {
+                points = []
+                geoms = []
+                pgeom = new THREE.Geometry()
+                while (scene.children.length > 0) {
+                    scene.remove(scene.children[0]);
+                }
+                var file = event.target.files[0];
+                if(!file) return;
+                var reader = new FileReader();
+                reader.onload = (event) => {
+                    let ps = event.target.result;
+                    points = importer(ps);
+                    init();
+                }
+                reader.readAsText(file);
+            })
 
-            for(var i = 0; i < points.length; i++){
-                pgeom.vertices.push(points[i]) ;
-            };
 
-            for(var i = 1; i < linePoints.length;i+=2){
-                    const geom = new THREE.Geometry()
-                    geom.vertices.push(linePoints[i])
-                    geom.vertices.push(linePoints[i-1])
-                    geoms.push(geom);
-            }
 
             const renderer = new THREE.WebGLRenderer();
-            renderer.setSize( window.innerWidth, window.innerHeight );
-            document.body.appendChild( renderer.domElement );
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
 
-            const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 500 );
-            camera.position.set( 0, 0, 100 );
-            camera.lookAt( 0, 0, 0 );
+            const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 500);
+            camera.position.set(0, 0, 100);
+            camera.lookAt(0, 0, 0);
 
             const scene = new THREE.Scene();
 
-            const material = new THREE.LineBasicMaterial( { color: 0xffffff  } );
-            const pMat = new THREE.PointsMaterial({color:0xffffff,size:2});
+            const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+            const pMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
+
+            function init(){
+                var out = convexHull3D(points);
+                points.forEach(
+                    p => pgeom.vertices.push(new THREE.Vector3(p.x,p.y,p.z))
+                )
+
+                out.edges.forEach(
+                    e=>{
+                        const geom = new THREE.Geometry()
+                        const p1 = points[e[0]]
+                        const p2 = points[e[1]] 
+                        geom.vertices.push(new THREE.Vector3(p1.x,p1.y,p1.z))
+                        geom.vertices.push(new THREE.Vector3(p2.x,p2.y,p2.z))
+                        geoms.push(geom);
+                    }
+                )
+
+                addPoints();
+            }
 
             function addLines() {
                 for(var i = 0; i < geoms.length;i++){
@@ -72,6 +79,7 @@
                 const pts = new THREE.Points(pgeom,pMat)
                 scene.add(pts)
             }
+
 
             //GUI
             const gui =  new dat.GUI()
@@ -121,13 +129,11 @@
                 }
             }
 
-            addPoints();
             render();
         </script>
         <!-- <button>
             Upload Points
         </button>
->>>>>>> 1617e49ee2a196beea990233e2d9e2d940bbe402
         <form>
             <div>
                 <input id="none"type="radio">
