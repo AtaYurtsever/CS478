@@ -8,6 +8,7 @@
     </head>
     <body>
         <input id="fileinput" type="file" style="visibility:hidden" />
+        <button onclick="onClickHandler()">Iteration</button>
         <!-- <div style="width: 400px; height:400px; background-color: black;">
 
         </div> -->
@@ -15,6 +16,8 @@
             var points = [];
             var geoms = [];
             var pgeom = new THREE.Geometry()
+            let convexHull;
+
             document.getElementById("fileinput").addEventListener('change',(event) => {
                 points = []
                 geoms = []
@@ -28,6 +31,7 @@
                 reader.onload = (event) => {
                     let ps = event.target.result;
                     points = importer(ps);
+                    convexHull = new ConvexHull3DIter(points);
                     init();
                 }
                 reader.readAsText(file);
@@ -48,15 +52,44 @@
             const material = new THREE.LineBasicMaterial({ color: 0xffffff });
             const pMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
 
+            
+
             function init(){
-                var out = convexHull3D(points);
+                while(scene.children.length > 0){ 
+                    scene.remove(scene.children[0]); 
+                }
+                
+                pgeom = new THREE.Geometry()
                 points.forEach(
                     p => pgeom.vertices.push(new THREE.Vector3(p.x,p.y,p.z))
                 )
+                var edges = convexHull.edges;
+                // axises
+                const geomX = new THREE.Geometry();
+                geomX.vertices.push(new THREE.Vector3(100,0,0))
+                geomX.vertices.push(new THREE.Vector3(-5,0,0))
+                const geomY = new THREE.Geometry();
+                geomY.vertices.push(new THREE.Vector3(0,100,0))
+                geomY.vertices.push(new THREE.Vector3(0,-5,0))
+                const geomZ = new THREE.Geometry();
+                geomZ.vertices.push(new THREE.Vector3(0,0,100))
+                geomZ.vertices.push(new THREE.Vector3(0,0,-5))
+                var normal = convexHull.faceNormal;
 
-                out.edges.forEach(
+                const geomNormal = new THREE.Geometry();
+                geomNormal.vertices.push(new THREE.Vector3(normal.x * 3,normal.y * 3,normal.z * 3))
+                geomNormal.vertices.push(new THREE.Vector3(0,0,0))
+
+                geoms = [
+                    geomX,
+                    geomY,
+                    geomZ,
+                    geomNormal
+                ];
+                edges.forEach(
                     e=>{
                         const geom = new THREE.Geometry()
+                        console.log(`p1 index: ${e[0]}, p2 index: ${e[1]}`)
                         const p1 = points[e[0]]
                         const p2 = points[e[1]] 
                         geom.vertices.push(new THREE.Vector3(p1.x,p1.y,p1.z))
@@ -64,8 +97,13 @@
                         geoms.push(geom);
                     }
                 )
-
                 addPoints();
+                addLines();
+                /* var out = convexHull3D(points);
+                // points = out.points;
+
+
+                addPoints(); */
             }
 
             function addLines() {
@@ -91,13 +129,15 @@
                 loadFile : function() { 
                         document.getElementById('fileinput').click();
                 },
-                state : "points"
+                state : "points",
+                nextStep: onClickHandler,
             }
             control.add(props, "xRotate",  0, Math.PI / 50, 0.001)
             control.add(props, "yRotate",  0, Math.PI / 50, 0.001)
             control.add(props, "zRotate",  0, Math.PI / 50, 0.001)
             control.add(props, 'loadFile').name("Load points")
             control.add(props, "state", ["points", "hull", "open", "fold pattern"]).onChange(selectState)
+            control.add(props, "nextStep").name("next step")
             control.open()
 
             function render() {
@@ -130,6 +170,12 @@
             }
 
             render();
+
+            function onClickHandler() {
+                console.log(`next step: ${convexHull.nextStep()}`);
+
+                init();
+            }
         </script>
         <!-- <button>
             Upload Points
