@@ -63,7 +63,7 @@
                 points.forEach(
                     p => pgeom.vertices.push(new THREE.Vector3(p.x,p.y,p.z))
                 )
-                var edges = convexHull.edges;
+                var edges = convexHull3D(points).edges;
                 // axises
                 const geomX = new THREE.Geometry();
                 geomX.vertices.push(new THREE.Vector3(100,0,0))

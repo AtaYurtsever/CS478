@@ -99,14 +99,20 @@ class ConvexHull3DIter {
         return false;
     }
 }
-const convexHull3D1 = (points1)=>{
+const convexHull3D = (points1)=>{
+    const edgesSet = new Set();
     const pointsWithIndexes = new Map();
+    const visitedEdges = new Set();
+    const toVisit = [];
     points1.forEach((point, index)=>pointsWithIndexes.set(index, point)
     );
-    const edgesSet = new Set();
     const leftMost1 = findLeftMost(pointsWithIndexes);
-    console.log(pointsWithIndexes);
     const secondVertex1 = findSecondVertex(pointsWithIndexes, leftMost1);
+    const initialEdge1 = [
+        leftMost1.index,
+        secondVertex1.index
+    ];
+    edgesSet.add(JSON.stringify(initialEdge1));
     const initialPlaneNormal1 = {
         x: 1,
         y: 0,
@@ -115,16 +121,10 @@ const convexHull3D1 = (points1)=>{
     const initialEdgeNormalized1 = normalize(pointDiff(secondVertex1.point, leftMost1.point));
     const planeEdgeCross1 = cross(initialPlaneNormal1, initialEdgeNormalized1);
     const secondPlaneNormal1 = normalize(cross(initialEdgeNormalized1, planeEdgeCross1));
-    const initialEdge1 = [
-        leftMost1.index,
-        secondVertex1.index
-    ];
-    edgesSet.add(JSON.stringify(initialEdge1));
-    const visitedEdges = new Set();
-    const toVisit = [];
     toVisit.push({
         edge: initialEdge1,
-        faceNormal: secondPlaneNormal1
+        faceNormal: secondPlaneNormal1,
+        p3Index: -1
     });
     while(toVisit.length > 0){
         const edge = toVisit.shift();
@@ -133,24 +133,21 @@ const convexHull3D1 = (points1)=>{
             const p2i = edge.edge[1];
             const p1 = points1[p1i];
             const p2 = points1[p2i];
-            console.log(`visiting edge ${JSON.stringify(edge)}`);
             if (visitedEdges.has(JSON.stringify(edge.edge)) || visitedEdges.has(JSON.stringify(edge.edge.reverse()))) {
-                console.log(`edge is already visited`);
                 continue;
             }
             const edgeVector = normalize(pointDiff(p2, p1));
-            const aVector = normalize(cross(edge.faceNormal, edgeVector));
+            const aVector = cross(edge.faceNormal, edgeVector);
             let mostConvex = {
                 index: -1,
-                angle: -10000000000
+                angle: -Infinity
             };
             for (const [index, point] of pointsWithIndexes.entries()){
-                if (index === p1i || index === p2i) {
+                if (index === p1i || index === p2i || index === edge.p3Index) {
                     continue;
                 }
                 const v_k = normalize(pointDiff(point, p2));
-                const angle = -(dot(v_k, aVector) / dot(v_k, edgeVector));
-                console.log(`angle: ${angle}`);
+                const angle = -(dot(v_k, aVector) / dot(v_k, edge.faceNormal));
                 if (angle > mostConvex.angle) {
                     mostConvex = {
                         index,
@@ -164,8 +161,8 @@ const convexHull3D1 = (points1)=>{
                 mostConvex.index
             ];
             const edge2 = [
-                p2i,
-                mostConvex.index
+                mostConvex.index,
+                p2i
             ];
             const v_k = pointDiff(points1[mostConvex.index], p2);
             const currentFaceNormal = minus(normalize(cross(v_k, pointDiff(p1, p2))));
@@ -173,18 +170,19 @@ const convexHull3D1 = (points1)=>{
             edgesSet.add(JSON.stringify(edge2));
             toVisit.push({
                 edge: edge1,
-                faceNormal: currentFaceNormal
+                faceNormal: currentFaceNormal,
+                p3Index: p2i
             });
             toVisit.push({
                 edge: edge2,
-                faceNormal: currentFaceNormal
+                faceNormal: currentFaceNormal,
+                p3Index: p1i
             });
             visitedEdges.add(JSON.stringify(edge.edge));
         } else {
             throw new Error("Unreachable");
         }
     }
-    const initialEdgeNormalizedAbs = pointAdd(initialEdgeNormalized1, leftMost1.point);
     return {
         points: points1,
         edges: [
@@ -262,12 +260,6 @@ const pointDiff = (a, b)=>({
         x: a.x - b.x,
         y: a.y - b.y,
         z: a.z - b.z
-    })
-;
-const pointAdd = (a, b)=>({
-        x: a.x + b.x,
-        y: a.y + b.y,
-        z: a.z + b.z
     })
 ;
 const normalize = (p)=>{

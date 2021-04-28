@@ -117,20 +117,23 @@ export class ConvexHull3DIter {
 }
 
 export const convexHull3D = (points: Point3D[]): Polyhedra => {
+    const edgesSet = new Set<string>();
+
     const pointsWithIndexes = new Map<number, Point3D>();
+
+    const visitedEdges = new Set<string>();
+
+    const toVisit: { edge: [number, number], faceNormal: Point3D, p3Index: number }[] = [];
 
     points.forEach((point, index) => pointsWithIndexes.set(index, point));
 
-    const edgesSet = new Set<string>();
-
     const leftMost = findLeftMost(pointsWithIndexes);
-
-    // pointsWithIndexes.delete(leftMost.index);
-
-    console.log(pointsWithIndexes);
-
     
     const secondVertex = findSecondVertex(pointsWithIndexes, leftMost);
+
+    const initialEdge: [number, number] = [ leftMost.index, secondVertex.index ];
+    
+    edgesSet.add(JSON.stringify(initialEdge));
     
     const initialPlaneNormal = { x: 1, y: 0, z: 0 };
 
@@ -140,16 +143,7 @@ export const convexHull3D = (points: Point3D[]): Polyhedra => {
 
     const secondPlaneNormal = normalize(cross(initialEdgeNormalized, planeEdgeCross));
 
-    const initialEdge: [number, number] = [ leftMost.index, secondVertex.index ];
-
-    /* edgesSet.add(JSON.stringify([ points.length, points.length + 1 ])) */
-
-    edgesSet.add(JSON.stringify(initialEdge));
-
-    const visitedEdges = new Set<string>();
-    const toVisit: { edge: [number, number], faceNormal: Point3D }[] = [];
-
-    toVisit.push({ edge: initialEdge, faceNormal: secondPlaneNormal });
+    toVisit.push({ edge: initialEdge, faceNormal: secondPlaneNormal, p3Index: -1 });
 
     // let lastEdge: [number, number] | null = null;
     
@@ -164,48 +158,36 @@ export const convexHull3D = (points: Point3D[]): Polyhedra => {
             const p1 = points[p1i];
             const p2 = points[p2i];
         
-            console.log(`visiting edge ${JSON.stringify(edge)}`);
+            // console.log(`visiting edge ${JSON.stringify(edge)}`);
 
             if (visitedEdges.has(JSON.stringify(edge.edge)) || visitedEdges.has(JSON.stringify(edge.edge.reverse()))) {
-                console.log(`edge is already visited`);
+                // console.log(`edge is already visited`);
                 continue;
             }
             // const edgeNormal = normalize(pointDiff(points[edge[1]], points[edge[0]]));
     
             const edgeVector = normalize(pointDiff(p2, p1));
-
-            const aVector = normalize(cross(edge.faceNormal, edgeVector));
-
-            let mostConvex = { index: -1, angle: -1e10 };
+            const aVector = cross(edge.faceNormal, edgeVector);
+            
+            let mostConvex = { index: -1, angle: -Infinity };
             for (const [index, point] of pointsWithIndexes.entries()) {
-                if (index === p1i || index === p2i) {
+                if (index === p1i || index === p2i || index === edge.p3Index) {
                     continue;
                 }
 
                 const v_k = normalize(pointDiff(point, p2));
 
-                const angle = -(dot(v_k, aVector) / dot(v_k, edgeVector));
-
-                /* const diff = normalize(pointDiff(points[edge[1]], point));
-                const angle = Math.acos(dot(diff, edgeNormal)); */
-
-                console.log(`angle: ${angle}`);
-
+                const angle = - (dot(v_k, aVector) / dot(v_k, edge.faceNormal));
+                    
                 if (angle > mostConvex.angle) {
                     mostConvex = { index, angle };
-                    /* if (angle > Math.PI) {
-                    } else {
-                        throw new Error(`Angle is not less than PI: ${angle}`);
-                    } */
                 }
             }
 
             console.log(`picked point: ${mostConvex.index}`);
 
             const edge1: [number, number] = [ p1i, mostConvex.index ];
-            const edge2: [number, number] = [ p2i, mostConvex.index ];
-
-            
+            const edge2: [number, number] = [ mostConvex.index, p2i ];
 
             const v_k = pointDiff(points[mostConvex.index], p2);
 
@@ -214,32 +196,18 @@ export const convexHull3D = (points: Point3D[]): Polyhedra => {
             edgesSet.add(JSON.stringify(edge1));
             edgesSet.add(JSON.stringify(edge2));
 
-            /* if (!edgesSet.has(JSON.stringify(edge1)) &&
-                !edgesSet.has(JSON.stringify(edge1.reverse()))) {  
-                edgesSet.add(JSON.stringify(edge1));
-                lastEdge = edge1;
-            } */
-
-            // result.edges.push([edge[1], mostConvex.index]);
-            // result.edges.push([ mostConvex.index, edge[0] ]);
-            toVisit.push({ edge: edge1, faceNormal: currentFaceNormal });
-            toVisit.push({ edge: edge2, faceNormal: currentFaceNormal });
+            toVisit.push({ edge: edge1, faceNormal: currentFaceNormal, p3Index: p2i });
+            toVisit.push({ edge: edge2, faceNormal: currentFaceNormal, p3Index: p1i });
             
             visitedEdges.add(JSON.stringify(edge.edge));
+
         } else {
             throw new Error("Unreachable");
         }        
     }
 
-    /* if (lastEdge) {
-        edgesSet.add(JSON.stringify([ leftMost.index, lastEdge[1] ]));
-    } */
-
-    const initialEdgeNormalizedAbs = pointAdd(initialEdgeNormalized, leftMost.point);
-
     return {
         points,
-        // points: [ ...points, initialEdgeNormalizedAbs, pointAdd(secondPlaneNormal, initialEdgeNormalizedAbs) ],
         edges: [ ...edgesSet.values() ].map(s => JSON.parse(s))
     };
 }
