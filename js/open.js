@@ -148,11 +148,15 @@ function open_polyhedra(polyhedra){
 
     var f = faces.shift()
     var myPts = polyhedra.points.map(p=>({x:p.x,y:p.y,z:p.z}))
-    openHelper(Array.from(f),edges,faces, myPts ,[]);
-    return {points:myPts, edges:polyhedra.edges}
+    var myEdges = []
+    var myPoints = []
+    openHelper(Array.from(f),edges,faces, myPts, myEdges, myPoints);
+    console.log(myPoints.length)
+    myPoints.push(...Array.from(f).map(v=> polyhedra.points[v]))
+    return {points:myPoints, edges:polyhedra.edges}
 }
 
-function openHelper(face,edgeSet,faces, points){
+function openHelper(face,edgeSet,faces, points, edges, myPoints){
     var ab = [face[0],face[1]]
     var bc = [face[1],face[2]]
     var ac = [face[0],face[2]]
@@ -163,19 +167,21 @@ function openHelper(face,edgeSet,faces, points){
         var f = faces.filter(v => v.has(ab[0]) && v.has(ab[1]) && !v.has(bc[1]))[0]
         faces = faces.filter(v => !v.has(ab[0]) || !v.has(ab[1]) || v.has(bc[1]))
         if(f){
-            var pts = [...openHelper(Array.from(f),edgeSet,faces,points)]
+            var pts = [...openHelper(Array.from(f),edgeSet,faces,points, edges, myPoints)]
             var k = Array.from(f).filter(v => v!= ab[0] && v != ab[1])[0]
-            pts.push(k)
-
+            pts.push(myPoints.length)
+            myPoints.push(points[k])
             pts.forEach(p=>
-                points[p] = rotatePoint(
+                myPoints[p] = rotatePoint(
                     points[bc[1]],
                     [points[ab[0]], points[ab[1]]],
-                    points[p]
+                    myPoints[p]
                 )   
             )
 
             curPoints.push(...pts);
+
+
         }
     }
     if(edgeSet.has(sns(bc))){
@@ -184,15 +190,17 @@ function openHelper(face,edgeSet,faces, points){
         var f = faces.filter(v => v.has(bc[0]) && v.has(bc[1]) && !v.has(ab[0]))[0]
         faces = faces.filter(v => !v.has(bc[0]) || !v.has(bc[1]) || v.has(ab[0]))
         if(f){
-            var pts = [...openHelper(Array.from(f),edgeSet,faces,points)]
+            var pts = [...openHelper(Array.from(f),edgeSet,faces,points, edges, myPoints)]
+
             var k = Array.from(f).filter(v => v!= bc[0] && v != bc[1])[0]
-            pts.push(k)
+            pts.push(myPoints.length)
+            myPoints.push(points[k])
 
             pts.forEach(p=>
-                points[p] = rotatePoint(
+                myPoints[p] = rotatePoint(
                     points[ab[0]],
                     [points[bc[0]], points[bc[1]]],
-                    points[p]
+                    myPoints[p]
                 )   
             )
             
@@ -205,15 +213,17 @@ function openHelper(face,edgeSet,faces, points){
         var f = faces.filter(v => v.has(ac[0]) && v.has(ac[1]) && !v.has(ab[1]))[0]
         faces = faces.filter(v => !v.has(ac[0]) || !v.has(ac[1]) || v.has(ab[1]))
         if(f){
-            var pts = [...openHelper(Array.from(f),edgeSet,faces,points)]
+            var pts = [...openHelper(Array.from(f),edgeSet,faces,points, edges, myPoints)]
+
             var k = Array.from(f).filter(v => v!= ac[0] && v != ac[1])[0]
-            pts.push(k)
+            pts.push(myPoints.length)
+            myPoints.push(points[k])
 
             pts.forEach(p=>
-                points[p] = rotatePoint(
+                myPoints[p] = rotatePoint(
                     points[ab[1]],
                     [points[ac[0]], points[ac[1]]],
-                    points[p]
+                    myPoints[p]
                 )   
             )
             
@@ -242,7 +252,6 @@ function rotatePoint(other, edge, point){
         sub(edge[0],edge[1]),
         sub(other,edge[1])
     )
-    console.log("pn",pn)
     var dir = cross(
         pn,
         sub(edge[0],edge[1])
