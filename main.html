@@ -8,7 +8,6 @@
     </head>
     <body>
         <input id="fileinput" type="file" style="visibility:hidden" />
-        <button onclick="onClickHandler()">Iteration</button>
         <!-- <div style="width: 400px; height:400px; background-color: black;">
 
         </div> -->
@@ -97,8 +96,8 @@
                         geoms.push(geom);
                     }
                 )
+
                 addPoints();
-                addLines();
                 /* var out = convexHull3D(points);
                 // points = out.points;
 
@@ -137,7 +136,6 @@
             control.add(props, "zRotate",  0, Math.PI / 50, 0.001)
             control.add(props, 'loadFile').name("Load points")
             control.add(props, "state", ["points", "hull", "open", "fold pattern"]).onChange(selectState)
-            control.add(props, "nextStep").name("next step")
             control.open()
 
             function render() {
