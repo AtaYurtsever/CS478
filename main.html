@@ -48,8 +48,8 @@
 
             const scene = new THREE.Scene();
 
-            const material = new THREE.LineBasicMaterial({ color: 0xffffff });
-            const pMat = new THREE.PointsMaterial({ color: 0xffffff, size: 1 });
+            const material = new THREE.LineBasicMaterial({ color: 0x007700 });
+            let pMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25 });
 
             
 
@@ -57,6 +57,9 @@
                 while(scene.children.length > 0){ 
                     scene.remove(scene.children[0]); 
                 }
+                const pointSize = 0.25 + 1.5 / (1 + Math.exp(points.length / 1000));
+                console.log(`point size: ${pointSize}`);
+                pMat = new THREE.PointsMaterial({ color: 0xffffff, size: pointSize });
                 
                 pgeom = new THREE.Geometry()
                 points.forEach(

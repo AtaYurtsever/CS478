@@ -43,9 +43,7 @@ class ConvexHull3DIter {
                 const p2i = edge.edge[1];
                 const p1 = this.points[p1i];
                 const p2 = this.points[p2i];
-                console.log(`visiting edge ${JSON.stringify(edge)}`);
                 if (this.visitedEdges.has(JSON.stringify(edge.edge)) || this.visitedEdges.has(JSON.stringify(edge.edge.reverse()))) {
-                    console.log(`edge is already visited`);
                     continue;
                 }
                 const edgeVector = normalize(pointDiff(p2, p1));
@@ -67,7 +65,6 @@ class ConvexHull3DIter {
                         };
                     }
                 }
-                console.log(`picked point: ${mostConvex.index}`);
                 const edge1 = [
                     p1i,
                     mostConvex.index
@@ -155,7 +152,6 @@ const convexHull3D = (points1)=>{
                     };
                 }
             }
-            console.log(`picked point: ${mostConvex.index}`);
             const edge1 = [
                 p1i,
                 mostConvex.index

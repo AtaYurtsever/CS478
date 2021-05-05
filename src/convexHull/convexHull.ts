@@ -62,10 +62,7 @@ export class ConvexHull3DIter {
                 const p1 = this.points[p1i];
                 const p2 = this.points[p2i];
             
-                console.log(`visiting edge ${JSON.stringify(edge)}`);
-    
                 if (this.visitedEdges.has(JSON.stringify(edge.edge)) || this.visitedEdges.has(JSON.stringify(edge.edge.reverse()))) {
-                    console.log(`edge is already visited`);
                     continue;
                 }
                 // const edgeNormal = normalize(pointDiff(points[edge[1]], points[edge[0]]));
@@ -87,8 +84,6 @@ export class ConvexHull3DIter {
                         mostConvex = { index, angle };
                     }
                 }
-    
-                console.log(`picked point: ${mostConvex.index}`);
     
                 const edge1: [number, number] = [ p1i, mostConvex.index ];
                 const edge2: [number, number] = [ mostConvex.index, p2i ];
@@ -183,8 +178,6 @@ export const convexHull3D = (points: Point3D[]): Polyhedra => {
                     mostConvex = { index, angle };
                 }
             }
-
-            console.log(`picked point: ${mostConvex.index}`);
 
             const edge1: [number, number] = [ p1i, mostConvex.index ];
             const edge2: [number, number] = [ mostConvex.index, p2i ];
