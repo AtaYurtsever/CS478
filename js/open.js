@@ -71,7 +71,7 @@ const normalize_vec = (p)=>{
     };
 };
 
-const cross = (a,b) => ({
+const cross_vec = (a,b) => ({
     x: a.y*b.z - a.z*b.y,
     y: -a.x*b.z + a.z*b.x,
     z: a.x*b.y - a.y*b.x
@@ -84,8 +84,8 @@ const angle = (a,b) =>  Math.acos(dot_vec(a,b)/(size(a)*size(b)))
 function angleInPlane(e1,e2,e3, normal){
     var v = sub(e2,e1);
     var z = sub(e3,e2);
-    var a = cross(v,normal);
-    var b = cross(z,normal);
+    var a = cross_vec(v,normal);
+    var b = cross_vec(z,normal);
     sign = dot_vec(v,b) < 0 ? 0 : 1
     return angle(a,b) + sign* Math.PI/2;
 }
@@ -320,11 +320,11 @@ function findOrtho(a,b,c){
 
 function rotatePoint(other, edge, point){
     var orthoP = findOrtho(point, edge[0], edge[1]);
-    var pn = cross(
+    var pn = cross_vec(
         sub(edge[0],edge[1]),
         sub(other,edge[1])
     )
-    var dir = cross(
+    var dir = cross_vec(
         pn,
         sub(edge[0],edge[1])
     )
