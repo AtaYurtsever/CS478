@@ -17,11 +17,11 @@
             var geoms = [];
             var pgeom = new THREE.Geometry()
             var openPts = new THREE.Geometry()
-            // var openGeoms = [];
+            var openGeoms = [];
             document.getElementById("fileinput").addEventListener('change',(event) => {
                 points = []
                 geoms = []
-                // openGeoms = [];
+                openGeoms = [];
                 pgeom = new THREE.Geometry()
                 openPts = new THREE.Geometry()
                 while (scene.children.length > 0) {
@@ -76,16 +76,17 @@
                     p => openPts.vertices.push(new THREE.Vector3(p.x, p.y, p.z))
                 )
 
-                // _open.edges.forEach(
-                //     e => {
-                //         const geom = new THREE.Geometry()
-                //         const p1 = _open.points[e[0]]
-                //         const p2 = _open.points[e[1]]
-                //         geom.vertices.push(new THREE.Vector3(p1.x, p1.y, p1.z))
-                //         geom.vertices.push(new THREE.Vector3(p2.x, p2.y, p2.z))
-                //         openGeoms.push(geom);
-                //     }
-                // )
+                _open.edges.forEach(
+                    e => {
+                        const geom = new THREE.Geometry()
+                        const p1 = _open.points[e[0]]
+                        const p2 = _open.points[e[1]]
+                        console.log(e,p1,p2);
+                        geom.vertices.push(new THREE.Vector3(p1.x, p1.y, p1.z))
+                        geom.vertices.push(new THREE.Vector3(p2.x, p2.y, p2.z))
+                        openGeoms.push(geom);
+                    }
+                )
                 
                 addPoints();
             }
@@ -103,10 +104,10 @@
             }
 
             function addOpenGeom() {
-                // for (var i = 0; i < geoms.length; i++) {
-                //     const line = new THREE.Line(openGeoms[i], material)
-                //     scene.add(line);
-                // }
+                for (var i = 0; i < openGeoms.length; i++) {
+                    const line = new THREE.Line(openGeoms[i], material)
+                    scene.add(line);
+                }
                 const pts = new THREE.Points(openPts, pMat)
                 scene.add(pts)
             }
@@ -138,11 +139,11 @@
                     geom.rotateY(props.yRotate)
                     geom.rotateZ(props.zRotate)
                 })
-                // openGeoms.map(geom => {
-                //     geom.rotateX(props.xRotate)
-                //     geom.rotateY(props.yRotate)
-                //     geom.rotateZ(props.zRotate)
-                // })
+                openGeoms.map(geom => {
+                    geom.rotateX(props.xRotate)
+                    geom.rotateY(props.yRotate)
+                    geom.rotateZ(props.zRotate)
+                })
                 pgeom.rotateX(props.xRotate)
                 pgeom.rotateY(props.yRotate)
                 pgeom.rotateZ(props.zRotate)
