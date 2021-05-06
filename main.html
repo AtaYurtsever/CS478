@@ -159,6 +159,7 @@
                 xRotate : 0.015,
                 yRotate : 0.015,
                 zRotate : 0.015,
+                cameraZ : 100,
                 loadFile : function() { 
                         document.getElementById('fileinput').click();
                 },
@@ -168,6 +169,7 @@
             control.add(props, "xRotate",  0, Math.PI / 50, 0.001)
             control.add(props, "yRotate",  0, Math.PI / 50, 0.001)
             control.add(props, "zRotate",  0, Math.PI / 50, 0.001)
+            control.add(props, "cameraZ", 0, 300)
             control.add(props, 'loadFile').name("Load points")
             control.add(props, "state", ["points", "hull", "open", "fold pattern"]).onChange(selectState)
             control.open()
@@ -193,7 +195,7 @@
                 openPts.rotateY(props.yRotate)
                 openPts.rotateZ(props.zRotate)
 
-                
+                camera.position.set(0, 0, props.cameraZ);
             }
 
             function selectState(s){
