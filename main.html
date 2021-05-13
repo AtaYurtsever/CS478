@@ -19,6 +19,7 @@
             var openPts = new THREE.Geometry()
             var openGeoms = [];
             let convexHull;
+            
             document.getElementById("fileinput").addEventListener('change',(event) => {
                 points = []
                 geoms = []
@@ -56,12 +57,12 @@
             let pMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25 });
 
             
-
+            let out;
             function init(){
                 while(scene.children.length > 0){ 
                     scene.remove(scene.children[0]); 
                 }
-                const pointSize = 0.25 + 1.5 / (1 + Math.exp(points.length / 1000));
+                const pointSize = 0.1 + 1.8 / (1 + Math.exp(points.length / 1000));
                 console.log(`point size: ${pointSize}`);
                 pMat = new THREE.PointsMaterial({ color: 0xffffff, size: pointSize });
                 
@@ -69,7 +70,8 @@
                 points.forEach(
                     p => pgeom.vertices.push(new THREE.Vector3(p.x,p.y,p.z))
                 )
-                var out = convexHull3D(points);
+                out = convexHull3D(points);
+                console.log(out);
                 var edges = out.edges
                 // axises
                 const geomX = new THREE.Geometry();
@@ -88,10 +90,10 @@
                 geomNormal.vertices.push(new THREE.Vector3(0,0,0))
 
                 geoms = [
-                    geomX,
+                    /* geomX,
                     geomY,
                     geomZ,
-                    geomNormal
+                    geomNormal */
                 ];
                 edges.forEach(
                     e=>{
@@ -105,23 +107,7 @@
                     }
                 )
 
-                var _open = open_polyhedra(out);
-
-                _open.points.forEach(
-                    p => openPts.vertices.push(new THREE.Vector3(p.x, p.y, p.z))
-                )
-
-                _open.edges.forEach(
-                    e => {
-                        const geom = new THREE.Geometry()
-                        const p1 = _open.points[e[0]]
-                        const p2 = _open.points[e[1]]
-                        console.log(e,p1,p2);
-                        geom.vertices.push(new THREE.Vector3(p1.x, p1.y, p1.z))
-                        geom.vertices.push(new THREE.Vector3(p2.x, p2.y, p2.z))
-                        openGeoms.push(geom);
-                    }
-                )
+               
                 
                 addPoints();
                 /* var out = convexHull3D(points);
@@ -216,6 +202,25 @@
                     while (scene.children.length > 0) {
                         scene.remove(scene.children[0]);
                     }
+                    openPts = new THREE.Geometry()
+                    openGeoms = [];
+                    var _open = open_polyhedra(out);
+
+                    _open.points.forEach(
+                        p => openPts.vertices.push(new THREE.Vector3(p.x, p.y, p.z))
+                    )
+
+                    _open.edges.forEach(
+                        e => {
+                            const geom = new THREE.Geometry()
+                            const p1 = _open.points[e[0]]
+                            const p2 = _open.points[e[1]]
+                            console.log(e,p1,p2);
+                            geom.vertices.push(new THREE.Vector3(p1.x, p1.y, p1.z))
+                            geom.vertices.push(new THREE.Vector3(p2.x, p2.y, p2.z))
+                            openGeoms.push(geom);
+                        }
+                    )
                     addOpenGeom()
                 }
             }
