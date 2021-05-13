@@ -18,6 +18,7 @@
             var pgeom = new THREE.Geometry()
             var openPts = new THREE.Geometry()
             var openGeoms = [];
+            var faceGeoms = new THREE.Geometry()
             let convexHull;
             
             document.getElementById("fileinput").addEventListener('change',(event) => {
@@ -26,6 +27,7 @@
                 openGeoms = [];
                 pgeom = new THREE.Geometry()
                 openPts = new THREE.Geometry()
+                faceGeoms = new THREE.Geometry()
                 while (scene.children.length > 0) {
                     scene.remove(scene.children[0]);
                 }
@@ -53,9 +55,9 @@
 
             const scene = new THREE.Scene();
 
-            const material = new THREE.LineBasicMaterial({ color: 0x007700 });
+            const material = new THREE.LineBasicMaterial({ color: 0x007700, size: 1.5 });
             let pMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.25 });
-
+            const faceMat = new THREE.MeshBasicMaterial({color: 0x9130e6, opacity:0.8, transparent:true, side: THREE.DoubleSide})
             
             let out;
             function init(){
@@ -68,7 +70,10 @@
                 
                 pgeom = new THREE.Geometry()
                 points.forEach(
-                    p => pgeom.vertices.push(new THREE.Vector3(p.x,p.y,p.z))
+                    p => {
+                        pgeom.vertices.push(new THREE.Vector3(p.x,p.y,p.z))
+                        faceGeoms.vertices.push(new THREE.Vector3(p.x, p.y, p.z))
+                    }
                 )
                 out = convexHull3D(points);
                 console.log(out);
@@ -108,13 +113,35 @@
                 )
 
                
+                openPts = new THREE.Geometry()
+                openGeoms = [];
+                var _open = open_polyhedra(out);
+
+                _open.points.forEach(
+                    p => {
+                        openPts.vertices.push(new THREE.Vector3(p.x, p.y, p.z))
+                    }
+                )
+
+                _open.edges.forEach(
+                    e => {
+                        const geom = new THREE.Geometry()
+                        const p1 = _open.points[e[0]]
+                        const p2 = _open.points[e[1]]
+                        console.log(e, p1, p2);
+                        geom.vertices.push(new THREE.Vector3(p1.x, p1.y, p1.z))
+                        geom.vertices.push(new THREE.Vector3(p2.x, p2.y, p2.z))
+                        openGeoms.push(geom);
+                    }
+                )
+
+                _open.faces.forEach(f => {
+                    const _f = Array.from(f);
+                    faceGeoms.faces.push(new THREE.Face3(_f[0], _f[1], _f[2]))
+                })
                 
                 addPoints();
-                /* var out = convexHull3D(points);
-                // points = out.points;
-
-
-                addPoints(); */
+                
             }
 
             function addLines() {
@@ -138,6 +165,11 @@
                 scene.add(pts)
             }
 
+            function addFaces() {
+                const mesh = new THREE.Mesh(faceGeoms, faceMat);
+                scene.add(mesh)
+            }
+
             //GUI
             const gui =  new dat.GUI()
             const control = gui.addFolder("control")
@@ -157,7 +189,7 @@
             control.add(props, "zRotate",  0, Math.PI / 50, 0.001)
             control.add(props, "cameraZ", 0, 300)
             control.add(props, 'loadFile').name("Load points")
-            control.add(props, "state", ["points", "hull", "open", "fold pattern"]).onChange(selectState)
+            control.add(props, "state", ["points", "hull", "open", "meshOnly", "full"]).onChange(selectState)
             control.open()
 
             function render() {
@@ -181,6 +213,10 @@
                 openPts.rotateY(props.yRotate)
                 openPts.rotateZ(props.zRotate)
 
+                faceGeoms.rotateX(props.xRotate)
+                faceGeoms.rotateY(props.yRotate)
+                faceGeoms.rotateZ(props.zRotate)
+
                 camera.position.set(0, 0, props.cameraZ);
             }
 
@@ -202,26 +238,24 @@
                     while (scene.children.length > 0) {
                         scene.remove(scene.children[0]);
                     }
-                    openPts = new THREE.Geometry()
-                    openGeoms = [];
-                    var _open = open_polyhedra(out);
-
-                    _open.points.forEach(
-                        p => openPts.vertices.push(new THREE.Vector3(p.x, p.y, p.z))
-                    )
-
-                    _open.edges.forEach(
-                        e => {
-                            const geom = new THREE.Geometry()
-                            const p1 = _open.points[e[0]]
-                            const p2 = _open.points[e[1]]
-                            console.log(e,p1,p2);
-                            geom.vertices.push(new THREE.Vector3(p1.x, p1.y, p1.z))
-                            geom.vertices.push(new THREE.Vector3(p2.x, p2.y, p2.z))
-                            openGeoms.push(geom);
-                        }
-                    )
+                    
                     addOpenGeom()
+                }
+                else if(s === "full"){
+                    while (scene.children.length > 0) {
+                        scene.remove(scene.children[0]);
+                    }
+
+                    addFaces()
+                    addPoints()
+                    addLines()
+                }
+                else if(s === "meshOnly"){
+                    while (scene.children.length > 0) {
+                        scene.remove(scene.children[0]);
+                    }
+
+                    addFaces()
                 }
             }
 

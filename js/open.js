@@ -141,6 +141,7 @@ function _faces(polyhedra){
 
 function open_polyhedra(polyhedra){
     var faces = _faces(polyhedra)
+    const myfaces = [...faces];
     console.log(faces);
     //put all edges into a set for easy access
     var edges = new Set();
@@ -162,7 +163,7 @@ function open_polyhedra(polyhedra){
 
     myEdges.push([0,1],[1,2],[0,2])
 
-    return {points:myPoints, edges:myEdges}
+    return {points:myPoints, edges:myEdges, faces:myfaces}
 }
 
 function openHelper(face,edgeSet,faces, points, edges, myPoints){
